@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">QuickSurvey</string>
+    <string name="action_settings">Settings</string>
+    <string name="button_use_camera">Use camera</string>
+    <string name="edit_survey_id">Survey ID</string>
+    <string name="button_get_survey">Get survey</string>
+    <string name="title_activity_survey">SurveyActivity</string>
+    <string name="hello_world">Hello world!</string>
+
+</resources>

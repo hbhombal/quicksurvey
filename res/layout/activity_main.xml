@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <TextView
+		android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Use the camera to scan a QR code, or enter the survey ID:" />
+    <Button
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="@string/button_use_camera"
+		android:onClick="useCamera" />
+    <EditText
+        android:id="@+id/edit_survey_id"
+        android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+        android:hint="@string/edit_survey_id" />
+    <Button
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="@string/button_get_survey"
+		android:onClick="getSurvey" />
+</LinearLayout>
