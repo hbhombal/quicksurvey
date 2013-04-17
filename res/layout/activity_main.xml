@@ -3,24 +3,39 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical" android:gravity="center_vertical" android:background="#ffffff">
+    <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imageView" android:background="@drawable/survey_icon"
+            android:layout_gravity="center_horizontal"/>
     <TextView
-		android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Use the camera to scan a QR code, or enter the survey ID:" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Quick Survey"
+            android:id="@+id/textView" android:layout_gravity="center_horizontal" android:layout_marginBottom="66dp"
+            android:textSize="20dp" android:textStyle="bold" android:textColor="#5c5c5c"/>
     <Button
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:text="@string/button_use_camera"
-		android:onClick="useCamera" />
+		android:text="Get survey from QR Code"
+		android:onClick="useCamera" android:layout_gravity="center"
+        android:background="#33a5cf" android:clickable="true" android:height="48dp" android:textColor="#ffffff"
+        android:textColorHighlight="#8d8d8d" android:width="200dp" android:typeface="normal" android:textSize="16dp"
+        android:textStyle="normal" android:lines="2" android:longClickable="false" android:shadowColor="#33677a" />
     <EditText
         android:id="@+id/edit_survey_id"
         android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-        android:hint="@string/edit_survey_id" />
+        android:hint="@string/edit_survey_id" android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp" android:layout_marginBottom="16dp" android:background="#ffffff"
+        android:textColor="#5c5c5c" android:textSize="16dp" android:textStyle="normal" android:typeface="normal"
+        android:singleLine="true"/>
     <Button
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:text="@string/button_get_survey"
-		android:onClick="getSurvey" />
+		android:text="Get survey from ID"
+		android:onClick="getSurvey" android:layout_gravity="center_horizontal" android:background="#33a5cf"
+        android:clickable="true" android:height="48dp" android:textColor="#ffffff" android:textSize="16dp"
+        android:textStyle="normal" android:width="200dp"/>
 </LinearLayout>

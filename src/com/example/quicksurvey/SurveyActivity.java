@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 
+import android.widget.*;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -26,12 +27,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.TextView;
 
 public class SurveyActivity extends Activity {
 	
@@ -51,12 +46,13 @@ public class SurveyActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		// Show the Up button in the action bar.
 		setupActionBar();
-		
+
 		//setContentView(R.layout.activity_survey);
 		//lLayout = (LinearLayout) this.findViewById(R.id.linear_layout);
         
 		lLayout = new LinearLayout(this);
 		lLayout.setOrientation(LinearLayout.VERTICAL);
+
 		submitButton = new Button(this);
 		
 		String token = getIntent().getStringExtra(EXTRA_TOKEN);
@@ -140,6 +136,11 @@ public class SurveyActivity extends Activity {
 			String status = json.getString("status");
 			String message = json.getString("message");
 			Log.i("QuickSurvey app", "status: "+status+" message: "+message);
+            if (status.compareTo("success") == 0) {
+                Toast.makeText(this, "Submission succeeded", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Submission failed", Toast.LENGTH_SHORT).show();
+            }
 		}
 		catch (JSONException e) {
 		    e.printStackTrace();
