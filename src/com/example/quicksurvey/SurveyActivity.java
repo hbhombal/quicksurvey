@@ -1,24 +1,25 @@
 package com.example.quicksurvey;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
-import android.widget.*;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -27,12 +28,20 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.TextView;
+import android.widget.Toast;
 
 public class SurveyActivity extends Activity {
 	
 	LinearLayout lLayout;
 	Button submitButton;
 	String questionToken;
+	String surveyToken;
 	
 	String urlType;
 	static final String ASK = "ask";
@@ -55,9 +64,9 @@ public class SurveyActivity extends Activity {
 
 		submitButton = new Button(this);
 		
-		String token = getIntent().getStringExtra(EXTRA_TOKEN);
+		surveyToken = getIntent().getStringExtra(EXTRA_TOKEN);
 		urlType = ASK;
-		new GetJSONFromUrl().execute("http://quicksurvey.herokuapp.com/api/surveys/"+token+"/ask.json");
+		new GetJSONFromUrl().execute("http://quicksurvey.herokuapp.com/api/surveys/"+surveyToken+"/ask.json");
 		
 		setContentView(lLayout);
 		
@@ -73,53 +82,76 @@ public class SurveyActivity extends Activity {
 			lLayout.addView(titleView);
 			
 			JSONArray questions = data.getJSONArray("questions");
-			//for(int i = 0; i < questions.length(); i++) {
-				JSONObject question = questions.getJSONObject(0);
-				questionToken = question.getString("token");
-				TextView questionView = new TextView(this);
-				questionView.setText(question.getString("title"));
-				lLayout.addView(questionView);
+			
+			JSONObject question = questions.getJSONObject(0);
+			questionToken = question.getString("token");
+			TextView questionView = new TextView(this);
+			questionView.setText(question.getString("title"));
+			lLayout.addView(questionView);
+			
+			if (question.getString("kind").equals("multiple-choice")) {
 				
-				if (question.getString("kind").equals("multiple-choice")) {
-					
-					final RadioGroup rg = new RadioGroup(this);
-					rg.setOrientation(RadioGroup.VERTICAL);
-					
-					JSONArray options = question.getJSONArray("options");
-					for(int j = 0; j < options.length(); j++) {
-						JSONObject option = options.getJSONObject(j);
-						RadioButton rb = new RadioButton(this);
-						rb.setText(option.getString("content"));
-						rb.setTag(option.getString("token"));
-						rb.setId(j);
-						rg.addView(rb);
-					}
-					lLayout.addView(rg);
-					submitButton.setOnClickListener(new View.OnClickListener() {
-					    @Override
-					    public void onClick(View v) {	
-					        RadioButton response = (RadioButton) findViewById(rg.getCheckedRadioButtonId());
+				final RadioGroup rg = new RadioGroup(this);
+				rg.setOrientation(RadioGroup.VERTICAL);
+				
+				JSONArray options = question.getJSONArray("options");
+				for(int j = 0; j < options.length(); j++) {
+					JSONObject option = options.getJSONObject(j);
+					RadioButton rb = new RadioButton(this);
+					rb.setText(option.getString("content"));
+					rb.setTag(option.getString("token"));
+					rb.setId(j);
+					rg.addView(rb);
+				}
+				lLayout.addView(rg);
+				submitButton.setOnClickListener(new View.OnClickListener() {
+				    @Override
+				    public void onClick(View v) {
+				    	int optionID = rg.getCheckedRadioButtonId();
+				    	if (optionID == -1) {
+				    		Toast.makeText(SurveyActivity.this, "You haven't selected a response", Toast.LENGTH_SHORT).show();
+				    	}
+				    	else {
+					        RadioButton response = (RadioButton) findViewById(optionID);
 					        sendResponse(questionToken, (String) response.getTag());
-					    }
-					});
-				}
-				else if (question.getString("kind").equals("fill-in")) {
-					final EditText textResponse = new EditText(this);
-					lLayout.addView(textResponse);
-					submitButton.setOnClickListener(new View.OnClickListener() {
-					    @Override
-					    public void onClick(View v) {	
-					    	sendResponse(questionToken, textResponse.getText().toString());
-					    }
-					});
-				}
-				submitButton.setText("Submit");
-				lLayout.addView(submitButton);
-				
-			//}
+				    	}
+				    }
+				});
+			}
+			else if (question.getString("kind").equals("fill-in")) {
+				final EditText textResponse = new EditText(this);
+				lLayout.addView(textResponse);
+				submitButton.setOnClickListener(new View.OnClickListener() {
+				    @Override
+				    public void onClick(View v) {	
+				    	sendResponse(questionToken, textResponse.getText().toString());
+				    }
+				});
+			}
+			submitButton.setText("Submit");
+			lLayout.addView(submitButton);
+
 		}
-		catch (JSONException e) {
+		catch (Exception e) {
 		    e.printStackTrace();
+		    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setMessage("Error fetching survey");
+		    builder.setCancelable(false);
+		    builder.setPositiveButton("Retry",
+		    	new DialogInterface.OnClickListener() {
+		    		public void onClick(DialogInterface dialog, int id) {
+		    			new GetJSONFromUrl().execute("http://quicksurvey.herokuapp.com/api/surveys/"+surveyToken+"/ask.json");
+		    		}
+		    	}
+		    );
+		    builder.setNegativeButton("Return to main menu",
+		    	new DialogInterface.OnClickListener() {
+			    	public void onClick(DialogInterface dialog, int id) {
+			    		finish();
+			    	}
+			 	}
+			);
+			builder.show();
 		}
 		
 	}
@@ -127,7 +159,12 @@ public class SurveyActivity extends Activity {
 	protected void sendResponse(String questionToken, String response) {
 		Log.i("QuickSurvey app", "Question token: "+questionToken+" response: "+response);
 		urlType = ANSWER;
-		new GetJSONFromUrl().execute("http://quicksurvey.herokuapp.com/api/questions/"+questionToken+"/answer.json?value="+response);	
+		try {
+			new GetJSONFromUrl().execute("http://quicksurvey.herokuapp.com/api/questions/"+questionToken+"/answer.json?value="+URLEncoder.encode(response, "UTF-8"));
+		}
+		catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}	
 	}
 	
 	public void confirmSubmission(JSONObject json) {
@@ -136,14 +173,25 @@ public class SurveyActivity extends Activity {
 			String status = json.getString("status");
 			String message = json.getString("message");
 			Log.i("QuickSurvey app", "status: "+status+" message: "+message);
-            if (status.compareTo("success") == 0) {
-                Toast.makeText(this, "Submission succeeded", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Submission failed", Toast.LENGTH_SHORT).show();
-            }
+			
+			if (status.compareTo("success") == 0) {
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setMessage(message)
+			    		.setCancelable(false)
+			    		.setPositiveButton("Return to main menu", new DialogInterface.OnClickListener() {
+			            public void onClick(DialogInterface dialog, int id) {
+			                finish();
+			           }
+			       });
+				builder.show();
+			}
+			else {
+				Toast.makeText(this, "Submission failed", Toast.LENGTH_SHORT).show();
+			}
 		}
 		catch (JSONException e) {
 		    e.printStackTrace();
+		    Toast.makeText(this, "Submission failed", Toast.LENGTH_SHORT).show();
 		}
 	}
 
@@ -181,7 +229,7 @@ public class SurveyActivity extends Activity {
 		return super.onOptionsItemSelected(item);
 	}
 
-	class GetJSONFromUrl extends AsyncTask<String, Void, InputStream> {
+	class GetJSONFromUrl extends AsyncTask<String, Void, JSONObject> {
 	    ProgressDialog progressDialog;
 
 	    @Override
@@ -190,11 +238,10 @@ public class SurveyActivity extends Activity {
 	        super.onPreExecute();
 	    }
 	    
-	    protected InputStream doInBackground(String... urls) {
+	    protected JSONObject doInBackground(String... urls) {
 	    	Log.i("QuickSurvey app", "in doInBackground()");
-
+	    	JSONObject jObj = null;
 	        try {
-	            // defaultHttpClient
 	            DefaultHttpClient httpClient = new DefaultHttpClient();
 	            Log.i("QuickSurvey app", "1");
 	            HttpPost httpPost = new HttpPost(urls[0]);
@@ -202,56 +249,37 @@ public class SurveyActivity extends Activity {
 	            HttpResponse httpResponse = httpClient.execute(httpPost);
 	            Log.i("QuickSurvey app", "3");
 	            HttpEntity httpEntity = httpResponse.getEntity();
-	            Log.i("QuickSurvey app", "4");
-	            return httpEntity.getContent();           
-	 
+	            String json = EntityUtils.toString(httpEntity);
+	            jObj = new JSONObject(json);
 	        } catch (UnsupportedEncodingException e) {
 	            e.printStackTrace();
 	        } catch (ClientProtocolException e) {
 	            e.printStackTrace();
 	        } catch (IOException e) {
 	            e.printStackTrace();
+	        } catch (ParseException e) {
+	        	Log.e("Buffer Error", "Error converting result " + e.toString());
+	        } catch (JSONException e) {
+	            Log.e("JSON Parser", "Error parsing data " + e.toString());
 	        }
-			return null;
+	        return jObj;
+			
 	    }
 
-	    protected void onPostExecute(InputStream result) {
+	    protected void onPostExecute(JSONObject jObj) {
 	    	Log.i("QuickSurvey app", "in onPostExecute()");
-	    	super.onPostExecute(result);
+	    	super.onPostExecute(jObj);
 	    	
 	    	if (progressDialog.isShowing()) {
 	    		progressDialog.dismiss();
 	    	}
-	    	String json = "";
-	    	JSONObject jObj;
-	    	
-	        try {
-	            BufferedReader reader = new BufferedReader(new InputStreamReader(
-	                    result, "iso-8859-1"), 8);
-	            StringBuilder sb = new StringBuilder();
-	            String line = null;
-	            while ((line = reader.readLine()) != null) {
-	                sb.append(line + "\n");
-	            }
-	            result.close();
-	            json = sb.toString();
-	        } catch (Exception e) {
-	            Log.e("Buffer Error", "Error converting result " + e.toString());
-	        }
-	 
-	        // try parse the string to a JSON object
-	        try {
-	        	jObj = new JSONObject(json);
-	        	//Log.i("QuickSurvey app", "urlType= "+urlType);
-	        	if (urlType.compareTo(ASK) == 0) {
-	        		setupQuestion(jObj);
-	        	}
-	        	else if (urlType.compareTo(ANSWER) == 0) {
-	        		confirmSubmission(jObj);
-	        	}
-	        } catch (JSONException e) {
-	            Log.e("JSON Parser", "Error parsing data " + e.toString());
-	        }
+	        
+	        if (urlType.compareTo(ASK) == 0) {
+        		setupQuestion(jObj);
+        	}
+        	else if (urlType.compareTo(ANSWER) == 0) {
+        		confirmSubmission(jObj);
+        	}
        
 	        
 	    }
