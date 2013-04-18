@@ -6,8 +6,10 @@ import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.NavUtils;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.Window;
 import android.view.WindowManager;
 import net.sourceforge.zbar.Config;
@@ -53,6 +55,24 @@ public class ZBarScannerActivity extends Activity implements Camera.PreviewCallb
         mPreview = new CameraPreview(this, this, autoFocusCB);
         setContentView(mPreview);
     }
+    
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			// This ID represents the Home or Up button. In the case of this
+			// activity, the Up button is shown. Use NavUtils to allow users
+			// to navigate up one level in the application structure. For
+			// more details, see the Navigation pattern on Android Design:
+			//
+			// http://developer.android.com/design/patterns/navigation.html#up-vs-back
+			//
+			setResult(Activity.RESULT_CANCELED);
+			NavUtils.navigateUpFromSameTask(this);
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
 
     public void setupScanner() {
         mScanner = new ImageScanner();
@@ -75,7 +95,7 @@ public class ZBarScannerActivity extends Activity implements Camera.PreviewCallb
         // Open the default i.e. the first rear facing camera.
         mCamera = Camera.open();
         if(mCamera == null) {
-            mCamera = Camera.open(1);
+            mCamera = Camera.open();
             // Cancel request if mCamera is null.
             if(mCamera == null) {
                 cancelRequest();
@@ -109,7 +129,7 @@ public class ZBarScannerActivity extends Activity implements Camera.PreviewCallb
     }
 
     public void cancelRequest() {
-        //setResult(Activity.RESULT_CANCELED);
+        setResult(Activity.RESULT_CANCELED);
         finish();
     }
 

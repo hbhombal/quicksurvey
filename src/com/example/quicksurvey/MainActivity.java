@@ -55,7 +55,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == ZBAR_SCANNER_REQUEST) {
+        if (requestCode == ZBAR_SCANNER_REQUEST && resultCode == Activity.RESULT_OK) {
             String url = data.getStringExtra(ZBarConstants.SCAN_RESULT);
             String[] parts = url.split("/");
             if (parts.length < NUM_PARTS_IN_URL || parts[2].compareTo("quicksurvey.herokuapp.com") != 0) {
